@@ -1,6 +1,11 @@
 const express = require("express");
-const bodyParser = require('body-parser');
 const mongoose = require("mongoose");
+const app = express();
+
+const userRoutes = require("./routes/user");
+app.use("/api/auth", userRoutes);
+
+module.exports = app;
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -15,12 +20,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(bodyParser.json());
-app.use('/api/sauces', (req, res, next))
-
-
-
-const userRoutes = require("./routes/user");
 mongoose
   .connect(
     "mongodb+srv://nixon:LNtabnp91@cluster0.2rjmn.mongodb.net/cluster0?retryWrites=true&w=majority",
@@ -28,13 +27,3 @@ mongoose
   )
   .then(() => console.log("Connexion à MongoDB réussie !"))
   .catch((error) => console.log("Connexion à MongoDB échouée !" + error));
-
-const app = express();
-
-app.use((req, res) => {
-  res.json({ message: "Votre requête a bien été reçue !" });
-});
-
-module.exports = app;
-
-app.use("/api/auth", userRoutes);
