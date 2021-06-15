@@ -1,5 +1,9 @@
+// ---------------importation des modules sauces et fs-------------------//
+
 const Sauce = require("../models/Sauce");
 const fs = require("fs");
+
+// ---------------Controllers des routes de l'application-------------//
 
 exports.getAllSauces = (req, res, next) => {
   Sauce.find()
@@ -74,32 +78,33 @@ exports.likeSauce = (req, res, next) => {
       })
       .catch((error) => res.status(500).json({ error }));
   } else if (like == 0) {
-    Sauce.findOne({ _id: req.params.id }).then((sauce) => {
-      console.log("avant");
-      console.log(sauce.usersLiked);
-      console.log(sauce.likes);
-      sauce.usersLiked.forEach((element) => {
-        if (sauce.likes == 1 && element == userId) {
-          sauce.usersLiked.splice(element, 1);
-          console.log("après");
-          console.log(sauce.usersLiked);
-          sauce.likes -= 1;
+    Sauce.findOne({ _id: req.params.id })
+      .then((sauce) => {
+        if (
+          !sauce.usersLiked.includes(userId) &&
+          !sauce.usersDisliked.includes(userId)
+        ) {
+          res.status(400).json({ error: `Vous n'avez pas liké ni disliké` });
+        }
+        if (sauce.usersLiked.includes(userId)) {
+          let position = sauce.usersLiked.indexOf(userId);
+          sauce.usersLiked.splice(position, 1);
+          sauce.likes--;
           sauce
             .save()
             .then(() => res.status(201).json({ message: "Sauce unlikée" }))
             .catch((error) => res.status(400).json({ error }));
-        } else if (sauce.likes == -1 && element == userId) {
-          sauce.usersDisliked.splice(element, 1);
-          console.log("après");
-          console.log(sauce.usersDisliked);
-          sauce.likes += 1;
+        } else {
+          let position = sauce.usersDisliked.includes(userId);
+          sauce.usersDisliked.splice(position, 1);
+          sauce.dislikes--;
           sauce
             .save()
-            .then(() => res.status(201).json({ message: "Sauce unDislikée" }))
+            .then(() => res.status(201).json({ message: "Sauce undislikée" }))
             .catch((error) => res.status(400).json({ error }));
         }
-      });
-    });
+      })
+      .catch((error) => res.status(500).json({ error }));
   } else {
     Sauce.findOne({ _id: req.params.id })
       .then((sauce) => {
